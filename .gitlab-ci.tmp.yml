@@ -1,0 +1,68 @@
+stages:
+  - build
+  - debug
+  - release
+
+buildLatestProjectImage:
+  stage: build
+  script:
+    - >
+      docker pull docker.registry.local/${APP_NAME};
+      docker build
+      -t docker.registry.local/${APP_NAME}
+      -f ${APP_NAME}-dockerfile
+      --progress "plain"
+      .;
+      docker push docker.registry.local/${APP_NAME};
+  tags:
+    - android
+    - shell
+
+assembleDebug:
+  stage: debug
+  script:
+    - >
+      docker run --rm
+      -v $PWD:/code
+      --network host
+      --name test_apk
+      docker.registry.local/${APP_NAME}
+      bash -c "
+      ./gradlew assembleDebug -x lint
+      "
+  artifacts:
+    name: "debug-${CI_COMMIT_SHORT_SHA}"
+    untracked: false
+    when: on_success
+    paths:
+      -  ${DEBUG_ARTIFACT_PATH}
+  only:
+    - dev
+  tags:
+    - android
+    - shell
+
+
+releaseApp:
+  stage: release
+  script:
+    - >
+      docker run --rm
+      -v $PWD:/code
+      --network host
+      --name test_apk
+      docker.registry.local/${APP_NAME}
+      bash -c "
+      ./gradlew assembleRelease -x lint
+      "
+  artifacts:
+    name: "release-${CI_COMMIT_SHORT_SHA}"
+    untracked: false
+    when: on_success
+    paths:
+      -  ${RELEASE_ARTIFACT_PATH}
+  only:
+    - tags
+  tags:
+    - android
+    - shell
