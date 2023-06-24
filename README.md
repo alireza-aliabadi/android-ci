@@ -2,7 +2,7 @@
 ## Instruction
 - Build
 
-    pull latest app builder image from docker images repository then create new image with updated context and push into repository
+    pull latest app builder image from docker images registry then create new image with updated context and push into image registry
 
     >note: each builder image includes java, gradle and required development kits
 
